@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cuestionario: Finales de Peones (Rubinstein)</title>
+<style>
+  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f8fafc; color: #1e293b; padding: 20px; line-height: 1.5; }
+  .container { max-width: 700px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+  h1 { color: #2563eb; text-align: center; font-size: 1.8rem; margin-bottom: 5px; }
+  p.sub { text-align: center; color: #64748b; margin-bottom: 30px; }
+  .q-card { margin-bottom: 25px; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px; background: #fdfdfd; }
+  .q-title { font-weight: bold; margin-bottom: 15px; font-size: 1.1rem; }
+  .btn { display: block; width: 100%; text-align: left; margin: 8px 0; padding: 12px; cursor: pointer; border: 1px solid #cbd5e1; background: #f1f5f9; border-radius: 6px; font-size: 1rem; transition: background 0.2s; }
+  .btn:hover:not([disabled]) { background: #e2e8f0; }
+  .btn:disabled { cursor: default; }
+  .correct { background: #16a34a !important; color: white !important; border-color: #15803d !important; font-weight: bold; }
+  .incorrect { background: #f97316 !important; color: white !important; border-color: #ea580c !important; } /* Naranja solicitado */
+  .submit-btn { display: block; width: 100%; padding: 15px; background: #2563eb; color: white; border: none; font-size: 1.1rem; font-weight: bold; cursor: pointer; border-radius: 6px; margin-top: 20px; }
+  .submit-btn:hover { background: #1d4ed8; }
+  #resultado { display: none; margin-top: 25px; padding: 20px; font-size: 1.2rem; text-align: center; border-radius: 8px; background: #eff6ff; border: 2px solid #bfdbfe; }
+  .score { font-size: 2rem; font-weight: bold; color: #2563eb; margin: 10px 0; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Cuestionario de Ajedrez</h1>
+  <p class="sub">Técnica en Finales de Peones (Rubinstein)</p>
+  
+  <div id="quiz"></div>
+  
+  <button class="submit-btn" onclick="finalizar()">Finalizar Cuestionario</button>
+  <div id="resultado"></div>
+</div>
+
+<script>
+  // Array comprimido con las preguntas para que el código no se corte jamás
+  const preguntas = [
+    { q: "1. ¿Qué gran maestro clásico conduce las piezas negras?", o: ["José Raúl Capablanca", "Akiba Rubinstein", "Alexander Alekhine", "Emanuel Lasker"], a: 1 },
+    { q: "2. ¿Qué simplificación se acaba de producir en el tablero?", o: ["Cambio de damas", "Cambio de alfiles", "Cambio de torres en c1", "Entrega de una pieza por dos peones"], a: 2 },
+    { q: "3. ¿Cuántas 'islas de peones' tienen las blancas?", o: ["Una sola isla compacta", "Dos islas", "Tres islas de peones", "Cuatro peones aislados"], a: 2 },
+    { q: "4. ¿Cuál es el peón débil blanco al que Rubinstein dirige primeramente su rey?", o: ["El peón aislado de h2", "El peón pasado de e4", "El peón atrasado de a3", "El peón central de d4"], a: 0 },
+    { q: "5. ¿Por qué es fundamental la actividad del rey en los finales?", o: ["Es la única pieza que corona", "No hay riesgo de mate y se convierte en pieza de ataque", "No puede ser capturado por peones", "Permite dar jaque perpetuo"], a: 1 },
+    { q: "6. ¿Qué busca Rubinstein al avanzar sus peones en el flanco de rey?", o: ["Forzar tablas por ahogado", "Romper la coraza defensiva blanca para tomar la oposición", "Defender a su rey", "Llegar a un final de reyes solos"], a: 1 },
+    { q: "7. ¿Qué efecto estratégico consigue con la jugada b5?", o: ["Paralizar a los dos peones blancos del flanco de dama", "Amenazar mate en dos", "Entregar un peón para abrir la columna b", "Obligar al rey blanco a salir"], a: 0 },
+    { q: "8. ¿Qué son los 'tiempos de reserva' en un final de peones?", o: ["Tiempo en el reloj digital", "Jugadas de peón para ceder el turno al rival (zugzwang)", "Jugadas hasta el control 40", "Retrasar la coronación"], a: 1 },
+    { q: "9. Si las blancas intentaran contraatacar coronando su peón, ¿qué ocurriría?", o: ["Ganan la partida", "Tablas por repetición", "Las negras dan mate inmediatamente con su rey y peón tras coronar", "El rey negro queda ahogado"], a: 2 },
+    { q: "10. ¿Cuál es la conclusión principal de esta lección técnica?", o: ["Atacar el punto débil, activar el rey y romper la coraza", "Mantener el rey en primera fila", "Avanzar los peones centrales primero", "Evitar cambios de piezas pesadas"], a: 0 }
+  ];
+
+  let score = 0;
+  let respondidas = 0;
+  const quizDiv = document.getElementById('quiz');
+
+  // Generador automático de HTML para ahorrar espacio
+  preguntas.forEach((p, index) => {
+    let html = `<div class="q-card"><div class="q-title">${p.q}</div>`;
+    p.o.forEach((op, i) => {
+      html += `<button class="btn" id="btn-${index}-${i}" onclick="check(${index}, ${i})">${["A)", "B)", "C)", "D)"][i]} ${op}</button>`;
+    });
+    html += `</div>`;
+    quizDiv.innerHTML += html;
+  });
+
+  // Función que pinta los botones de verde/naranja al pinchar
+  function check(qIndex, selected) {
+    if(preguntas[qIndex].done) return;
+    preguntas[qIndex].done = true;
+    respondidas++;
+    
+    let correct = preguntas[qIndex].a;
+    if(selected === correct) score++;
+
+    for(let i=0; i<4; i++) {
+      let btn = document.getElementById(`btn-${qIndex}-${i}`);
+      btn.disabled = true; // Desactiva los botones tras responder
+      if(i === correct) {
+        btn.classList.add('correct');
+      } else if(i === selected) {
+        btn.classList.add('incorrect');
+      }
+    }
+  }
+
+  // Corrector automático final
+  function finalizar() {
+    if(respondidas < 10) {
+      alert("¡Atención! Aún te faltan preguntas por responder.");
+      return;
+    }
+    let res = document.getElementById('resultado');
+    let msg = "";
+    let color = "";
+
+    if(score === 10) {
+      msg = "¡Nivel máximo alcanzado! Estupendo trabajo.";
+      color = "#16a34a"; // Verde
+    } else if(score >= 7) {
+      msg = "¡Bien hecho! Tienes un buen dominio del tema.";
+      color = "#2563eb"; // Azul
+    } else if(score >= 5) {
+      msg = "Aprobado, pero debes mejorar en algunos conceptos.";
+      color = "#f97316"; // Naranja
+    } else {
+      msg = "Debes mejorar. Te recomiendo volver a ver el vídeo.";
+      color = "#dc2626"; // Rojo
+    }
+    
+    res.innerHTML = `Puntuación Final<div class="score">${score} / 10</div><div style="color:${color}; font-weight:bold;">${msg}</div>`;
+    res.style.display = 'block';
+    res.scrollIntoView({ behavior: 'smooth' });
+  }
+</script>
+
+</body>
+</html>
