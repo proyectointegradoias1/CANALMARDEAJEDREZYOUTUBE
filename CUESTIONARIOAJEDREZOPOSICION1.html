@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuestionario: Finales de Ajedrez y la Oposición</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .option-btn {
+            transition: all 0.3s ease;
+        }
+        .option-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .correct {
+            background-color: #22c55e !important; /* Verde */
+            color: white !important;
+            border-color: #22c55e !important;
+        }
+        .incorrect {
+            background-color: #f97316 !important; /* Naranja */
+            color: white !important;
+            border-color: #f97316 !important;
+        }
+        .disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body class="text-gray-800 min-h-screen py-10 px-4">
+
+    <div class="max-w-3xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden">
+        <!-- Cabecera -->
+        <div class="bg-blue-800 text-white p-8 text-center">
+            <h1 class="text-3xl font-bold mb-2">Finales de Ajedrez: La Oposición</h1>
+            <p class="text-blue-200">Demuestra tus conocimientos sobre este concepto clave para ganar partidas.</p>
+        </div>
+
+        <!-- Contenedor de preguntas -->
+        <div id="quiz-container" class="p-8 space-y-8">
+            <!-- Las preguntas se generarán aquí mediante JavaScript -->
+        </div>
+
+        <!-- Resultados -->
+        <div id="results-container" class="hidden p-8 text-center bg-gray-50 border-t border-gray-200">
+            <h2 class="text-2xl font-bold mb-4">Resultados</h2>
+            <p class="text-lg mb-2">Has acertado <span id="score-text" class="font-bold text-blue-700"></span> de 10 preguntas.</p>
+            <div id="feedback-message" class="text-xl font-semibold py-3 px-6 rounded-lg inline-block mt-2">
+                <!-- El mensaje de evaluación aparecerá aquí -->
+            </div>
+            <button onclick="location.reload()" class="mt-8 bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 px-8 rounded-full transition-colors">
+                Intentar de nuevo
+            </button>
+        </div>
+
+        <!-- Botón para finalizar -->
+        <div id="finish-container" class="p-8 text-center border-t border-gray-200">
+            <button id="finish-btn" class="bg-gray-800 hover:bg-gray-900 text-white font-bold py-3 px-10 rounded-full transition-colors shadow-lg">
+                Corregir Cuestionario
+            </button>
+            <p id="warning-msg" class="text-red-500 mt-3 hidden">Por favor, responde todas las preguntas antes de corregir.</p>
+        </div>
+    </div>
+
+    <script>
+        const quizData = [
+            {
+                question: "1. ¿Qué suele ocurrir si en un final avanzas el único peón que te queda dando jaque al rey rival?",
+                options: [
+                    "Aseguras la coronación en la siguiente jugada.",
+                    "Suele llevar a ahogado y la partida termina en tablas.",
+                    "Fuerzas al rey rival a abandonar el tablero.",
+                    "Ganas un tiempo crucial para acercar tu rey."
+                ],
+                correctAnswer: 1
+            },
+            {
+                question: "2. Para ganar con un peón de ventaja, ¿qué función cumple ganar la oposición frontal?",
+                options: [
+                    "Hacer de 'tobogán' abriendo camino para que el peón corone.",
+                    "Distraer a las piezas menores del rival.",
+                    "Permitir que el peón se defienda solo.",
+                    "Obligar al rival a mover su propio peón."
+                ],
+                correctAnswer: 0
+            },
+            {
+                question: "3. ¿En qué situación es más útil utilizar la 'oposición lateral'?",
+                options: [
+                    "En el centro del tablero para controlar las casillas blancas.",
+                    "Al inicio del final para ganar espacio rápidamente.",
+                    "En los bordes del tablero para atrapar al rey rival y evitar que apoye a su peón.",
+                    "Solo cuando el rival tiene un peón de torre."
+                ],
+                correctAnswer: 2
+            },
+            {
+                question: "4. ¿Cuándo se debe utilizar la 'oposición distante'?",
+                options: [
+                    "Cuando hay un número impar de casillas de separación entre los reyes.",
+                    "Cuando hay un número par de casillas de separación entre los reyes.",
+                    "Cuando el rey rival está en jaque.",
+                    "Cuando los reyes están en distinta columna y fila."
+                ],
+                correctAnswer: 1
+            },
+            {
+                question: "5. ¿Qué peones son generalmente los más difíciles de coronar en un final de rey y peón contra rey?",
+                options: [
+                    "Los peones de caballo (columnas b y g).",
+                    "Los peones centrales (columnas d y e).",
+                    "Los peones de alfil (columnas c y f).",
+                    "Los peones de torre (columnas a y h)."
+                ],
+                correctAnswer: 3
+            },
+            {
+                question: "6. ¿Por qué los peones mencionados en la pregunta anterior son tan difíciles de coronar?",
+                options: [
+                    "Porque avanzan más lento que los demás.",
+                    "Porque el rey que ataca no tiene espacio por el otro lado del tablero para maniobrar.",
+                    "Porque valen menos puntos al final de la partida.",
+                    "Porque siempre son bloqueados por el alfil rival."
+                ],
+                correctAnswer: 1
+            },
+            {
+                question: "7. ¿Qué pasa habitualmente al ganar y mantener la oposición distante y avanzar hacia el rival?",
+                options: [
+                    "Se pierde la ventaja al acercarse.",
+                    "Poco a poco se va reduciendo hasta convertirse en oposición frontal.",
+                    "El peón debe sacrificarse para poder seguir.",
+                    "El rey rival huye hacia el centro."
+                ],
+                correctAnswer: 1
+            },
+            {
+                question: "8. Si el bando fuerte se apresura, avanza el peón rápidamente y olvida usar la oposición, ¿cuál es el peligro?",
+                options: [
+                    "Que el peón retroceda una casilla.",
+                    "Terminar ahogando al rival (tablas).",
+                    "Que el rey rival reciba jaque mate prematuro.",
+                    "Que el juego se reinicie desde el principio."
+                ],
+                correctAnswer: 1
+            },
+            {
+                question: "9. Si hay 6 casillas de separación entre tu rey y el del rival en la misma columna, y mueves tu rey avanzando una casilla, ¿qué has hecho?",
+                options: [
+                    "Cometer un error grave.",
+                    "Perder el turno.",
+                    "Ganar la oposición distante.",
+                    "Ahogar al rey enemigo de inmediato."
+                ],
+                correctAnswer: 2
+            },
+            {
+                question: "10. En el concepto de 'hacer de tobogán' para que el peón pase, ¿qué pieza es la que hace de tobogán?",
+                options: [
+                    "El propio peón.",
+                    "Una torre sacrificada.",
+                    "El rey del bando fuerte.",
+                    "El rey del bando débil."
+                ],
+                correctAnswer: 2
+            }
+        ];
+
+        let userAnswers = new Array(quizData.length).fill(null);
+        const quizContainer = document.getElementById('quiz-container');
+        const finishBtn = document.getElementById('finish-btn');
+        const warningMsg = document.getElementById('warning-msg');
+        const resultsContainer = document.getElementById('results-container');
+        const finishContainer = document.getElementById('finish-container');
+
+        // Generar las preguntas
+        function buildQuiz() {
+            quizData.forEach((data, qIndex) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'bg-white p-6 rounded-xl shadow-sm border border-gray-100';
+
+                const questionTitle = document.createElement('h3');
+                questionTitle.className = 'text-lg font-semibold mb-4 text-gray-800';
+                questionTitle.innerText = data.question;
+                questionDiv.appendChild(questionTitle);
+
+                const optionsGrid = document.createElement('div');
+                optionsGrid.className = 'grid grid-cols-1 md:grid-cols-2 gap-3';
+
+                data.options.forEach((option, oIndex) => {
+                    const btn = document.createElement('button');
+                    btn.className = `option-btn w-full text-left p-4 rounded-lg border-2 border-gray-200 hover:border-blue-400 focus:outline-none bg-gray-50 hover:bg-blue-50 text-gray-700`;
+                    btn.innerText = option;
+                    btn.onclick = () => selectOption(qIndex, oIndex, btn, optionsGrid);
+                    optionsGrid.appendChild(btn);
+                });
+
+                questionDiv.appendChild(optionsGrid);
+                quizContainer.appendChild(questionDiv);
+            });
+        }
+
+        // Manejar la selección de una opción
+        function selectOption(questionIndex, optionIndex, selectedBtn, optionsGrid) {
+            // Guardar respuesta
+            userAnswers[questionIndex] = optionIndex;
+
+            // Limpiar estilos anteriores en esta pregunta y deshabilitar temporalmente para marcar
+            const buttons = optionsGrid.querySelectorAll('button');
+            buttons.forEach((btn, idx) => {
+                btn.classList.remove('correct', 'incorrect');
+                btn.disabled = true; // Deshabilitar todos temporalmente tras contestar
+                btn.classList.add('disabled');
+            });
+
+            // Comprobar si es correcta o no
+            const isCorrect = optionIndex === quizData[questionIndex].correctAnswer;
+
+            if (isCorrect) {
+                selectedBtn.classList.add('correct');
+            } else {
+                selectedBtn.classList.add('incorrect');
+                // También mostramos cuál era la correcta en verde
+                buttons[quizData[questionIndex].correctAnswer].classList.add('correct');
+            }
+
+            // Quitar el aviso de advertencia si estaba activo
+            warningMsg.classList.add('hidden');
+        }
+
+        // Evaluar resultados al finalizar
+        function calculateResults() {
+            // Comprobar que todas están respondidas
+            if (userAnswers.includes(null)) {
+                warningMsg.classList.remove('hidden');
+                return;
+            }
+
+            let score = 0;
+            userAnswers.forEach((answer, index) => {
+                if (answer === quizData[index].correctAnswer) {
+                    score++;
+                }
+            });
+
+            mostrarEvaluacion(score);
+        }
+
+        function mostrarEvaluacion(score) {
+            quizContainer.classList.add('hidden');
+            finishContainer.classList.add('hidden');
+            resultsContainer.classList.remove('hidden');
+            
+            document.getElementById('score-text').innerText = score;
+
+            const feedbackEl = document.getElementById('feedback-message');
+            
+            // Lógica de mensajes según puntuación
+            if (score <= 4) {
+                feedbackEl.innerText = "Necesita mejorar. ¡Vuelve a repasar la teoría!";
+                feedbackEl.className = "text-xl font-semibold py-3 px-6 rounded-lg inline-block mt-2 bg-red-100 text-red-700";
+            } else if (score >= 5 && score <= 7) {
+                feedbackEl.innerText = "Bien. Tienes buena base, pero puedes pulir detalles.";
+                feedbackEl.className = "text-xl font-semibold py-3 px-6 rounded-lg inline-block mt-2 bg-yellow-100 text-yellow-700";
+            } else if (score >= 8 && score <= 9) {
+                feedbackEl.innerText = "¡Estupendo! Dominas muy bien los finales de peones.";
+                feedbackEl.className = "text-xl font-semibold py-3 px-6 rounded-lg inline-block mt-2 bg-blue-100 text-blue-700";
+            } else if (score === 10) {
+                feedbackEl.innerText = "¡Nivel Máximo! Eres un maestro de la oposición.";
+                feedbackEl.className = "text-xl font-semibold py-3 px-6 rounded-lg inline-block mt-2 bg-green-100 text-green-700";
+            }
+        }
+
+        // Event Listeners
+        finishBtn.addEventListener('click', calculateResults);
+
+        // Inicializar
+        buildQuiz();
+    </script>
+</body>
+</html>
