@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuestionario: Ajedrez - La Oposición Distante</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        .quiz-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-style: italic;
+        }
+        .question {
+            margin-bottom: 25px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+        .question p {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .option {
+            padding: 12px 15px;
+            border: 2px solid #dcdde1;
+            border-radius: 6px;
+            cursor: pointer;
+            background-color: #ffffff;
+            transition: all 0.2s ease;
+            font-size: 1em;
+        }
+        .option:hover {
+            background-color: #f1f2f6;
+            border-color: #7f8fa6;
+        }
+        /* Clases para la corrección al pinchar */
+        .option.correct {
+            background-color: #4cd137 !important; /* Verde */
+            color: white;
+            border-color: #44bd32 !important;
+        }
+        .option.incorrect {
+            background-color: #ff9f43 !important; /* Naranja */
+            color: white;
+            border-color: #ee5253 !important;
+        }
+        /* Desactivar opciones una vez contestadas */
+        .option.disabled {
+            pointer-events: none;
+        }
+        #submit-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1em;
+            font-weight: bold;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 30px;
+            transition: background-color 0.3s;
+        }
+        #submit-btn:hover {
+            background-color: #2980b9;
+        }
+        #result {
+            margin-top: 25px;
+            padding: 20px;
+            font-size: 1.2em;
+            text-align: center;
+            border-radius: 6px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <h1>Cuestionario: La Oposición Distante en Ajedrez</h1>
+    <p class="subtitle">Conceptos clave de finales de peones y reyes</p>
+
+    <div id="quiz"></div>
+
+    <button id="submit-btn" onclick="showResults()">Ver Puntuación Final</button>
+    <div id="result"></div>
+</div>
+
+<script>
+    // Base de datos de preguntas y opciones
+    const quizData = [
+        {
+            question: "1. En la oposición distante, ¿qué ocurre si el jugador que sale al encuentro del otro rey deja un número impar de casillas entre ambos?",
+            options: [
+                { text: "Automáticamente gana la partida por ventaja de espacio.", isCorrect: false },
+                { text: "El jugador que sale al encuentro del otro rey tiene la oposición perdida.", isCorrect: true },
+                { text: "Se considera tablas por repetición de movimientos.", isCorrect: false },
+                { text: "Se entra en la regla del cuadrado de forma forzosa.", isCorrect: false }
+            ]
+        },
+        {
+            question: "2. En el primer ejemplo analizado (Gligoric vs. Bobby Fischer), ¿qué jugada realiza Fischer para mantener las tablas?",
+            options: [
+                { text: "Acercarse directamente al rey blanco para obstaculizarlo (por ejemplo, Rey c7).", isCorrect: false },
+                { text: "Retroceder manteniendo la imparidad de casillas (Rey b8).", isCorrect: true },
+                { text: "Avanzar su peón rápidamente para coronar primero.", isCorrect: false },
+                { text: "Mover su rey al flanco contrario abandonando el peón.", isCorrect: false }
+            ]
+        },
+        {
+            question: "3. ¿Qué regla básica se menciona cuando un peón avanza y da jaque al rey contrario (siempre que el rey propio esté detrás del peón)?",
+            options: [
+                { text: "Esa posición normalmente lleva a tablas por ahogado del rey.", isCorrect: true },
+                { text: "Es una posición de mate inevitable en dos jugadas.", isCorrect: false },
+                { text: "Gana automáticamente el jugador que da el jaque.", isCorrect: false },
+                { text: "El peón se convierte en caballo obligatoriamente.", isCorrect: false }
+            ]
+        },
+        {
+            question: "4. En el problema de Arthur Mandler, las blancas juegan Rey e2. ¿Qué dos funciones principales cumple esta jugada?",
+            options: [
+                { text: "Sacrificar el peón y buscar ahogar al rey negro.", isCorrect: false },
+                { text: "Alejarse del peligro y buscar la promoción en el lado opuesto.", isCorrect: false },
+                { text: "Acercarse al cuadrado del peón y mantener un número impar de casillas (oposición distante).", isCorrect: true },
+                { text: "Defender al rey y bloquear los propios peones.", isCorrect: false }
+            ]
+        },
+        {
+            question: "5. ¿Qué ocurre si en el final de Mandler las blancas se equivocan y hacen Rey d3 en lugar de Rey e2?",
+            options: [
+                { text: "Coronan el peón una jugada más rápido.", isCorrect: false },
+                { text: "Ganan un tiempo vital para atacar por la retaguardia.", isCorrect: false },
+                { text: "Las casillas de separación se vuelven pares, pierden la oposición y el rey negro ayuda a su peón a coronar.", isCorrect: true },
+                { text: "Forzan un empate inmediato por rey ahogado.", isCorrect: false }
+            ]
+        },
+        {
+            question: "6. En el tercer problema anónimo de las redes sociales, donde las blancas tienen dos peones y las negras uno, ¿cuál es el plan para salvarse?",
+            options: [
+                { text: "Avanzar los dos peones al mismo tiempo sin importar el rey negro.", isCorrect: false },
+                { text: "Atacar con el rey (Rey g2 o Rey c2) directamente a los peones.", isCorrect: false },
+                { text: "Hacer una jugada antiintuitiva entregando peones para luego retomar la oposición distante (por ejemplo, g6 seguido de f5).", isCorrect: true },
+                { text: "Correr con el rey blanco a la esquina contraria para buscar tablas por ahogado.", isCorrect: false }
+            ]
+        },
+        {
+            question: "7. ¿Por qué en ese mismo problema jugar Rey f2 para acercarse a la defensa de los peones es un error fatal?",
+            options: [
+                { text: "Porque las negras harían jaque mate con el peón de g5.", isCorrect: false },
+                { text: "Porque aunque parezca que las blancas toman la oposición al capturar, las negras hacen una jugada de espera (f6), desplazan al rey y ganan.", isCorrect: true },
+                { text: "Porque las piezas blancas se quedan sin movimientos legales y pierden por tiempo.", isCorrect: false },
+                { text: "Porque permite que el peón negro corone con jaque doble.", isCorrect: false }
+            ]
+        },
+        {
+            question: "8. En el último problema compuesto por Capablanca, ¿cuántas casillas de separación hay inicialmente entre los dos reyes?",
+            options: [
+                { text: "Hay 3 casillas, un número impar.", isCorrect: false },
+                { text: "Hay 5 casillas, un número impar.", isCorrect: false },
+                { text: "Hay 4 casillas, un número par.", isCorrect: false },
+                { text: "Hay 6 casillas, un número par.", isCorrect: true }
+            ]
+        },
+        {
+            question: "9. Al haber un número par de casillas de separación inicial en el final de Capablanca, ¿qué pueden hacer directamente las blancas?",
+            options: [
+                { text: "Rendirse, ya que un número par siempre significa pérdida forzada.", isCorrect: false },
+                { text: "Ir directamente hacia el rey contrario (jugando Rey e2) para coger la oposición.", isCorrect: true },
+                { text: "Avanzar todos los peones una casilla para cambiar el ritmo de la partida.", isCorrect: false },
+                { text: "Entregar todos los peones a cambio de que el rey rival retroceda.", isCorrect: false }
+            ]
+        },
+        {
+            question: "10. Según las explicaciones del vídeo, además de dominar teóricamente estos conceptos (oposición distante, regla del cuadrado, etc.), ¿qué recomendación final se da a los jugadores?",
+            options: [
+                { text: "Que memoricen los movimientos de Capablanca sin razonarlos.", isCorrect: false },
+                { text: "Que utilicen programas de ordenador exclusivamente para calcular finales.", isCorrect: false },
+                { text: "Que el ajedrez no solo es ver vídeos o libros, sino que es vital practicar este tipo de problemitas.", isCorrect: true },
+                { text: "Que abandonen la partida si llegan a un final de reyes y peones por su complejidad.", isCorrect: false }
+            ]
+        }
+    ];
+
+    let score = 0;
+    let answeredQuestions = 0;
+
+    // Función para construir el cuestionario dinámicamente
+    function buildQuiz() {
+        const quizContainer = document.getElementById('quiz');
+        quizData.forEach((q, qIndex) => {
+            const questionDiv = document.createElement('div');
+            questionDiv.classList.add('question');
+            questionDiv.innerHTML = `<p>${q.question}</p>`;
+            
+            const optionsDiv = document.createElement('div');
+            optionsDiv.classList.add('options');
+            
+            q.options.forEach((opt, oIndex) => {
+                const optionDiv = document.createElement('div');
+                optionDiv.classList.add('option');
+                optionDiv.innerText = opt.text;
+                // Al hacer clic, se llama a la función de selección
+                optionDiv.onclick = () => selectOption(optionDiv, opt.isCorrect, qIndex);
+                optionsDiv.appendChild(optionDiv);
+            });
+            
+            questionDiv.appendChild(optionsDiv);
+            quizContainer.appendChild(questionDiv);
+        });
+    }
+
+    // Función que evalúa la opción pinchada
+    function selectOption(selectedDiv, isCorrect, qIndex) {
+        const optionsDiv = selectedDiv.parentElement;
+        const allOptions = optionsDiv.querySelectorAll('.option');
+        
+        // Evitar que se responda más de una vez a la misma pregunta
+        if (optionsDiv.classList.contains('answered')) return;
+        
+        optionsDiv.classList.add('answered');
+        answeredQuestions++;
+
+        // Desactivar todas las opciones de esta pregunta
+        allOptions.forEach(opt => opt.classList.add('disabled'));
+
+        if (isCorrect) {
+            selectedDiv.classList.add('correct');
+            score++;
+        } else {
+            selectedDiv.classList.add('incorrect');
+            // Si falla, mostramos automáticamente cuál era la correcta en verde
+            quizData[qIndex].options.forEach((opt, idx) => {
+                if(opt.isCorrect) {
+                    allOptions[idx].classList.add('correct');
+                }
+            });
+        }
+    }
+
+    // Función para calcular y mostrar el resultado final
+    function showResults() {
+        if (answeredQuestions < quizData.length) {
+            alert('Por favor, responde todas las preguntas pinchando en una opción antes de ver la puntuación final.');
+            return;
+        }
+
+        const resultDiv = document.getElementById('result');
+        resultDiv.style.display = 'block';
+        
+        let message = '';
+        
+        // Lógica de mensajes según puntuación
+        if (score === 10) {
+            message = '¡Nivel máximo! Tienes un dominio magistral de la oposición distante.';
+            resultDiv.style.backgroundColor = '#d4edda';
+            resultDiv.style.color = '#155724';
+        } else if (score >= 7) {
+            message = '¡Estupendo! Has comprendido muy bien la mecánica de los finales de peones y reyes.';
+            resultDiv.style.backgroundColor = '#cce5ff';
+            resultDiv.style.color = '#004085';
+        } else if (score >= 5) {
+            message = '¡Está bien! Aunque convendría repasar en el tablero los conceptos de paridad e imparidad de casillas.';
+            resultDiv.style.backgroundColor = '#fff3cd';
+            resultDiv.style.color = '#856404';
+        } else {
+            message = 'Debes mejorar. Los finales de peones requieren mucha práctica, vuelve a ver el vídeo y anota las posiciones.';
+            resultDiv.style.backgroundColor = '#f8d7da';
+            resultDiv.style.color = '#721c24';
+        }
+
+        resultDiv.innerHTML = `<strong>Puntuación conseguida: ${score} de 10</strong><br><br>${message}`;
+        document.getElementById('submit-btn').style.display = 'none'; // Oculta el botón tras finalizar
+    }
+
+    // Inicializamos el cuestionario al cargar
+    buildQuiz();
+</script>
+</body>
+</html>
