@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuestionario: El Cuadrado Errante 2</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        .quiz-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-style: italic;
+        }
+        .question {
+            margin-bottom: 25px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+        .question p {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .option {
+            padding: 12px 15px;
+            border: 2px solid #dcdde1;
+            border-radius: 6px;
+            cursor: pointer;
+            background-color: #ffffff;
+            transition: all 0.2s ease;
+            font-size: 1em;
+        }
+        .option:hover {
+            background-color: #f1f2f6;
+            border-color: #7f8fa6;
+        }
+        /* Corrección al pinchar */
+        .option.correct {
+            background-color: #4cd137 !important; /* Verde */
+            color: white;
+            border-color: #44bd32 !important;
+        }
+        .option.incorrect {
+            background-color: #ff9f43 !important; /* Naranja */
+            color: white;
+            border-color: #ee5253 !important;
+        }
+        /* Desactivar opciones contestadas */
+        .option.disabled {
+            pointer-events: none;
+        }
+        #submit-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1em;
+            font-weight: bold;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 30px;
+            transition: background-color 0.3s;
+        }
+        #submit-btn:hover {
+            background-color: #2980b9;
+        }
+        #result {
+            margin-top: 25px;
+            padding: 20px;
+            font-size: 1.2em;
+            text-align: center;
+            border-radius: 6px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <h1>Cuestionario: El Cuadrado Errante 2</h1>
+    <p class="subtitle">Lección de finales de peones del canal MARdeAJEDREZ</p>
+
+    <div id="quiz"></div>
+
+    <button id="submit-btn" onclick="showResults()">Ver Puntuación Final</button>
+    <div id="result"></div>
+</div>
+
+<script>
+    // Base de datos de 10 preguntas con las correcciones aplicadas
+    const quizData = [
+        {
+            question: "1. En la primera posición de zugzwang mutuo analizada, ¿por qué pierden las blancas si les toca mover a ellas?",
+            options: [
+                { text: "Porque sus peones no cumplen la regla de Studineski.", isCorrect: false },
+                { text: "Porque a cualquier movimiento del rey blanco, los tres peones negros avanzan quitándole espacio hasta coronar.", isCorrect: true },
+                { text: "Porque el rey negro se encuentra dentro del cuadrado del peón de d.", isCorrect: false },
+                { text: "Porque las negras tienen dos torres de ventaja.", isCorrect: false }
+            ]
+        },
+        {
+            question: "2. En el análisis de Gerald Abrahams (autor de 'La técnica en ajedrez'), ¿cuál es el 'truco' técnico del rey blanco para detener solo a tres peones negros sin ayuda de su rey rival?",
+            options: [
+                { text: "Avanzar directo hacia el peón más adelantado.", isCorrect: false },
+                { text: "Dar un pasito hacia atrás (retroceder para saltar mejor, p. ej. Rey g1) para poder ponerse delante del primer peón que avance.", isCorrect: true },
+                { text: "Entregar los dos peones propios en la primera jugada.", isCorrect: false },
+                { text: "Buscar el ahogado del rey negro en la casilla b7.", isCorrect: false }
+            ]
+        },
+        {
+            question: "3. En la posición de Gerald Abrahams, ¿por qué el rey negro no debe mover a b7 ni a ninguna otra casilla mientras las blancas esperan?",
+            options: [
+                { text: "Porque caería en jaque mate instantáneo.", isCorrect: false },
+                { text: "Porque las blancas avanzarían el peón contrario (p. ej. a d7) tejiendo una barrera e impidiendo detener la coronación.", isCorrect: true },
+                { text: "Porque el peón de f3 quedaría indefenso.", isCorrect: false },
+                { text: "Porque el reglamento prohíbe mover el rey cuando hay tres peones avanzados.", isCorrect: false }
+            ]
+        },
+        {
+            question: "4. Al aplicar la técnica de 'retroceder para saltar mejor' frente a tres peones, ¿cuándo se logra forzar la victoria definitiva?",
+            options: [
+                { text: "Cuando las negras agotan sus jugadas de peón y se ven obligadas a mover el rey, permitiendo la carrera del peón blanco.", isCorrect: true },
+                { text: "Cuando el rey blanco captura al peón central en la tercera jugada.", isCorrect: false },
+                { text: "Cuando se declara empate por la regla de los 50 movimientos.", isCorrect: false },
+                { text: "En el momento en que las negras coronan su segundo peón.", isCorrect: false }
+            ]
+        },
+        {
+            question: "5. En el ejemplo de Budrich vs. Tesner, ¿qué jugada realiza el blanco para romper en el flanco de rey y tejer el cuadrado errante con su peón pasado de a5?",
+            options: [
+                { text: "Avanzar el peón a g4 para buscar la apertura hacia e6.", isCorrect: true },
+                { text: "Mover el rey a a1 inmediatamente.", isCorrect: false },
+                { text: "Sacrificar el peón de a5 por el peón de h.", isCorrect: false },
+                { text: "Regresar todos los peones a la casilla de origen.", isCorrect: false }
+            ]
+        },
+        {
+            question: "6. En la misma partida Budrich vs. Tesner, ¿qué actitud profiláctica demuestra el bando blanco antes de avanzar a e6?",
+            options: [
+                { text: "Jugar Rey e3 para asegurar que el rey permanece dentro del cuadrado del peón negro de h y evitar sorpresas.", isCorrect: true },
+                { text: "Regalar el peón de e6 para distraer al rey negro.", isCorrect: false },
+                { text: "Ignorar por completo los peones negros y avanzar solo por la banda.", isCorrect: false },
+                { text: "Forzar las tablas mediante jaque continuo.", isCorrect: false }
+            ]
+        },
+        {
+            question: "7. En la partida Shirov vs. Akopian, ¿cómo asegura Alexei Shirov la victoria de forma serena y profiláctica antes de lanzar f4?",
+            options: [
+                { text: "Avanzando directamente su peón de f a f6 sin preparación.", isCorrect: false },
+                { text: "Colocando su rey en c1 y b2 para entrar y controlar el cuadrado del peón pasado a4 de Akopian.", isCorrect: true },
+                { text: "Permitiendo que Akopian corone primero su peón a.", isCorrect: false },
+                { text: "Promoviendo un peón a caballo para dar jaque.", isCorrect: false }
+            ]
+        },
+        {
+            question: "8. En el comentario sobre la partida de Shirov, ¿qué expresión figurada utiliza el presentador para explicar la captura del peón a4 ('Voy, lo mato y... ')?",
+            options: [
+                { text: "'...y me quedo en la esquina.'", isCorrect: false },
+                { text: "'...y vuelvo' (referida a capturar el peón alejado y regresar a defender/apoyar los propios).", isCorrect: true },
+                { text: "'...y gano la torre.'", isCorrect: false },
+                { text: "'...y pido tablas.'", isCorrect: false }
+            ]
+        },
+        {
+            question: "9. En la partida de Danjanovic con blancas, ¿quién conduce las piezas negras?",
+            options: [
+                { text: "Mark Dvoretsky (autor de 'Entrenamiento de élite').", isCorrect: true },
+                { text: "Garry Kasparov.", isCorrect: false },
+                { text: "Anatoly Karpov.", isCorrect: false },
+                { text: "Mikhail Botvinnik.", isCorrect: false }
+            ]
+        },
+        {
+            question: "10. ¿Qué maniobra táctica inicial (denominada en otros vídeos 'el regate') utiliza Dvoretsky para desorganizar la defensa de Danjanovic?",
+            options: [
+                { text: "Jugar e5! amenazando con salirse del cuadrado (o desviando al rival con b3!) para terminar creando su propio cuadrado errante ganador con d3.", isCorrect: true },
+                { text: "Enrocarse en el final de peones.", isCorrect: false },
+                { text: "Ofrecer un cambio de peones en la columna h.", isCorrect: false },
+                { text: "Esconder su rey detrás del peón de a4.", isCorrect: false }
+            ]
+        }
+    ];
+
+    let score = 0;
+    let answeredQuestions = 0;
+
+    // Función para construir el cuestionario
+    function buildQuiz() {
+        const quizContainer = document.getElementById('quiz');
+        quizData.forEach((q, qIndex) => {
+            const questionDiv = document.createElement('div');
+            questionDiv.classList.add('question');
+            questionDiv.innerHTML = `<p>${q.question}</p>`;
+            
+            const optionsDiv = document.createElement('div');
+            optionsDiv.classList.add('options');
+            
+            q.options.forEach((opt, oIndex) => {
+                const optionDiv = document.createElement('div');
+                optionDiv.classList.add('option');
+                optionDiv.innerText = opt.text;
+                optionDiv.onclick = () => selectOption(optionDiv, opt.isCorrect, qIndex);
+                optionsDiv.appendChild(optionDiv);
+            });
+            
+            questionDiv.appendChild(optionsDiv);
+            quizContainer.appendChild(questionDiv);
+        });
+    }
+
+    // Selección de opción y corrección
+    function selectOption(selectedDiv, isCorrect, qIndex) {
+        const optionsDiv = selectedDiv.parentElement;
+        const allOptions = optionsDiv.querySelectorAll('.option');
+        
+        if (optionsDiv.classList.contains('answered')) return;
+        
+        optionsDiv.classList.add('answered');
+        answeredQuestions++;
+
+        allOptions.forEach(opt => opt.classList.add('disabled'));
+
+        if (isCorrect) {
+            selectedDiv.classList.add('correct'); // Verde
+            score++;
+        } else {
+            selectedDiv.classList.add('incorrect'); // Naranja
+            // Mostrar la opción correcta en verde
+            quizData[qIndex].options.forEach((opt, idx) => {
+                if(opt.isCorrect) {
+                    allOptions[idx].classList.add('correct');
+                }
+            });
+        }
+    }
+
+    // Calcular y mostrar resultados con los mensajes por tramos
+    function showResults() {
+        if (answeredQuestions < quizData.length) {
+            alert('Por favor, responde todas las preguntas pinchando en una opción antes de ver la puntuación final.');
+            return;
+        }
+
+        const resultDiv = document.getElementById('result');
+        resultDiv.style.display = 'block';
+        
+        let message = '';
+        
+        if (score < 5) {
+            message = 'Necesitas mejorar. Lo ideal sería volver a ver el vídeo con tranquilidad e intentarlo de nuevo.';
+            resultDiv.style.backgroundColor = '#f8d7da';
+            resultDiv.style.color = '#721c24';
+        } else if (score >= 5 && score <= 6) {
+            message = '¡Bien! Has captado las ideas básicas, aunque te convendría repasar para afianzar conceptos.';
+            resultDiv.style.backgroundColor = '#fff3cd';
+            resultDiv.style.color = '#856404';
+        } else if (score >= 7 && score <= 9) {
+            message = '¡Bastante bien! Tienes un buen dominio de las reglas del cuadrado errante.';
+            resultDiv.style.backgroundColor = '#cce5ff';
+            resultDiv.style.color = '#004085';
+        } else if (score === 10) {
+            message = '¡Estupendo! Has estado pendiente del vídeo y has respondido todas las preguntas correctamente.';
+            resultDiv.style.backgroundColor = '#d4edda';
+            resultDiv.style.color = '#155724';
+        }
+
+        resultDiv.innerHTML = `<strong>Puntuación conseguida: ${score} de 10</strong><br><br>${message}`;
+        document.getElementById('submit-btn').style.display = 'none';
+    }
+
+    // Inicialización al cargar la página
+    buildQuiz();
+</script>
+</body>
+</html>
