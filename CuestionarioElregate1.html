@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuestionario: El Regate en Finales de Peones</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        .quiz-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-style: italic;
+        }
+        .question {
+            margin-bottom: 25px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+        .question p {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .option {
+            padding: 12px 15px;
+            border: 2px solid #dcdde1;
+            border-radius: 6px;
+            cursor: pointer;
+            background-color: #ffffff;
+            transition: all 0.2s ease;
+            font-size: 1em;
+        }
+        .option:hover {
+            background-color: #f1f2f6;
+            border-color: #7f8fa6;
+        }
+        /* Corrección al pinchar */
+        .option.correct {
+            background-color: #4cd137 !important; /* Verde */
+            color: white;
+            border-color: #44bd32 !important;
+        }
+        .option.incorrect {
+            background-color: #ff9f43 !important; /* Naranja */
+            color: white;
+            border-color: #ee5253 !important;
+        }
+        /* Desactivar opciones contestadas */
+        .option.disabled {
+            pointer-events: none;
+        }
+        #submit-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1em;
+            font-weight: bold;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 30px;
+            transition: background-color 0.3s;
+        }
+        #submit-btn:hover {
+            background-color: #2980b9;
+        }
+        #result {
+            margin-top: 25px;
+            padding: 20px;
+            font-size: 1.2em;
+            text-align: center;
+            border-radius: 6px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <h1>Cuestionario: El Regate en Finales de Peones</h1>
+    <p class="subtitle">Lección de finales de ajedrez del canal MARdeAJEDREZ</p>
+
+    <div id="quiz"></div>
+
+    <button id="submit-btn" onclick="showResults()">Ver Puntuación Final</button>
+    <div id="result"></div>
+</div>
+
+<script>
+    // Base de datos de 10 preguntas
+    const quizData = [
+        {
+            question: "1. ¿En qué consiste el recurso táctico del 'regate' en finales de peones?",
+            options: [
+                { text: "Una secuencia táctica de entregas de peones enfrentados para que el peón candidato allane su camino y logre coronar.", isCorrect: true },
+                { text: "Una maniobra de rey para ganar la oposición lateral en la banda.", isCorrect: false },
+                { text: "Avanzar todos los peones juntos en cadena sin realizar entregas.", isCorrect: false },
+                { text: "Cambiar todas las piezas para llegar a un final de tablas por ahogado.", isCorrect: false }
+            ]
+        },
+        {
+            question: "2. En el primer estudio de Jacobo Sarrat (3 peones contra 3), ¿qué ventaja posicional aparente tienen las negras?",
+            options: [
+                { text: "Tienen un peón pasado en el flanco de rey.", isCorrect: false },
+                { text: "Su rey se encuentra más cerca de los peones que el rey blanco.", isCorrect: true },
+                { text: "Disponen de dos peones ligados en cuarta fila.", isCorrect: false },
+                { text: "Tienen la ventaja de la oposición distante desde la primera jugada.", isCorrect: false }
+            ]
+        },
+        {
+            question: "3. Siguiendo la definición citada de José Raúl Capablanca, ¿cuál es el 'peón candidato'?",
+            options: [
+                { text: "El peón que se encuentra defendido por el rey propio.", isCorrect: false },
+                { text: "Aquel que en su camino hacia la coronación tiene menos obstáculos (peones enemigos).", isCorrect: true },
+                { text: "El peón situado en la columna central.", isCorrect: false },
+                { text: "El peón que se sacrifica primero para desviar al rival.", isCorrect: false }
+            ]
+        },
+        {
+            question: "4. Si en la posición de 3 contra 3 les toca mover a las negras y quieren neutralizar el regate blanco, ¿qué jugada deben hacer?",
+            options: [
+                { text: "Avanzar su peón central para bloquear al peón central blanco e impedir el regate.", isCorrect: true },
+                { text: "Mover su rey hacia la primera fila para esperar la coronación.", isCorrect: false },
+                { text: "Entregar el peón de a para cambiar todas las piezas.", isCorrect: false },
+                { text: "Avanzar el peón de b para buscar un jaque continuo.", isCorrect: false }
+            ]
+        },
+        {
+            question: "5. Cuando las negras bloquean el regate en la posición de 3 contra 3 y se simplifican los peones, ¿cómo logran las blancas entablar la partida?",
+            options: [
+                { text: "Ofreciendo tablas por repetición de jugadas.", isCorrect: false },
+                { text: "Utilizando la oposición y evitando que el rey negro pise las casillas críticas del peón b6.", isCorrect: true },
+                { text: "Avanzando su propio peón pasado sin importar el rey negro.", isCorrect: false },
+                { text: "Encerrando al rey negro en la casilla a1.", isCorrect: false }
+            ]
+        },
+        {
+            question: "6. En el segundo estudio analizado (4 peones contra 4 peones), ¿qué particularidad tiene la posición respecto al regate?",
+            options: [
+                { text: "Solo se puede ganar si se avanza el peón de la columna a.", isCorrect: false },
+                { text: "Se puede conseguir la victoria iniciando el regate con cualquiera de los peones.", isCorrect: true },
+                { text: "Únicamente se gana si el rey negro captura el peón de c.", isCorrect: false },
+                { text: "Obliga a sacrificar tres peones consecutivos sin recuperar ninguno.", isCorrect: false }
+            ]
+        },
+        {
+            question: "7. En el regate de 4 contra 4 peones, cuando uno de nuestros peones logra abrirse paso, ¿qué importante precaución hay que tener?",
+            options: [
+                { text: "Prestar atención a si el rival intenta avanzar un peón contraatacante para pararlo o controlar su casilla de coronación.", isCorrect: true },
+                { text: "Cambiar inmediatamente las damas tras la coronación.", isCorrect: false },
+                { text: "Avanzar siempre el rey a la octava fila antes de promover.", isCorrect: false },
+                { text: "Regalarle todos los peones restantes al rey negro.", isCorrect: false }
+            ]
+        },
+        {
+            question: "8. Cuando en una variante de 4 contra 4 el rival intenta avanzar un peón libre alejado, ¿qué recurso técnico permite al rey blanco detenerlo con calma?",
+            options: [
+                { text: "La regla del cuadrado del peón para aproximar el rey y frenarlo sin prisas.", isCorrect: true },
+                { text: "La regla de Studineski.", isCorrect: false },
+                { text: "El regate defensivo en diagonal.", isCorrect: false },
+                { text: "Un jaque mate ahogado en e1.", isCorrect: false }
+            ]
+        },
+        {
+            question: "9. En el estudio final de Johan Berger (compositor austríaco), ¿cuál es el peón candidato inicial de las blancas y por qué?",
+            options: [
+                { text: "El peón de c, porque está más cerca del rey.", isCorrect: false },
+                { text: "El peón de a4, porque en su camino hacia la coronación solo tiene en frente al peón de b6.", isCorrect: true },
+                { text: "El peón de b, porque está defendido por el peón de c.", isCorrect: false },
+                { text: "El peón de d, porque domina el centro.", isCorrect: false }
+            ]
+        },
+        {
+            question: "10. En el estudio de Berger, si tras el regate las negras mueven su rey para intentar frenar al peón pasado en a5, ¿cómo certifican las blancas la victoria?",
+            options: [
+                { text: "Avanzan el peón de a a a5 y aproximan su rey al peón de c enemigo para capturarlo o restringir al rey negro.", isCorrect: true },
+                { text: "Abandonan el peón pasado y retroceden con su rey a a1.", isCorrect: false },
+                { text: "Promocionan a caballo para dar jaque mate inmediato.", isCorrect: false },
+                { text: "Entregan todos los peones restantes para forzar el ahogado.", isCorrect: false }
+            ]
+        }
+    ];
+
+    let score = 0;
+    let answeredQuestions = 0;
+
+    // Función para construir el cuestionario
+    function buildQuiz() {
+        const quizContainer = document.getElementById('quiz');
+        quizData.forEach((q, qIndex) => {
+            const questionDiv = document.createElement('div');
+            questionDiv.classList.add('question');
+            questionDiv.innerHTML = `<p>${q.question}</p>`;
+            
+            const optionsDiv = document.createElement('div');
+            optionsDiv.classList.add('options');
+            
+            q.options.forEach((opt, oIndex) => {
+                const optionDiv = document.createElement('div');
+                optionDiv.classList.add('option');
+                optionDiv.innerText = opt.text;
+                optionDiv.onclick = () => selectOption(optionDiv, opt.isCorrect, qIndex);
+                optionsDiv.appendChild(optionDiv);
+            });
+            
+            questionDiv.appendChild(optionsDiv);
+            quizContainer.appendChild(questionDiv);
+        });
+    }
+
+    // Selección de opción y corrección
+    function selectOption(selectedDiv, isCorrect, qIndex) {
+        const optionsDiv = selectedDiv.parentElement;
+        const allOptions = optionsDiv.querySelectorAll('.option');
+        
+        if (optionsDiv.classList.contains('answered')) return;
+        
+        optionsDiv.classList.add('answered');
+        answeredQuestions++;
+
+        allOptions.forEach(opt => opt.classList.add('disabled'));
+
+        if (isCorrect) {
+            selectedDiv.classList.add('correct'); // Verde
+            score++;
+        } else {
+            selectedDiv.classList.add('incorrect'); // Naranja
+            // Mostrar la opción correcta en verde
+            quizData[qIndex].options.forEach((opt, idx) => {
+                if(opt.isCorrect) {
+                    allOptions[idx].classList.add('correct');
+                }
+            });
+        }
+    }
+
+    // Calcular y mostrar resultados con los mensajes por tramos
+    function showResults() {
+        if (answeredQuestions < quizData.length) {
+            alert('Por favor, responde todas las preguntas pinchando en una opción antes de ver la puntuación final.');
+            return;
+        }
+
+        const resultDiv = document.getElementById('result');
+        resultDiv.style.display = 'block';
+        
+        let message = '';
+        
+        if (score < 5) {
+            message = 'Necesitas mejorar. Lo ideal sería volver a ver el vídeo con tranquilidad e intentarlo de nuevo.';
+            resultDiv.style.backgroundColor = '#f8d7da';
+            resultDiv.style.color = '#721c24';
+        } else if (score >= 5 && score <= 6) {
+            message = '¡Bien! Has captado las ideas básicas, aunque te convendría repasar para afianzar conceptos.';
+            resultDiv.style.backgroundColor = '#fff3cd';
+            resultDiv.style.color = '#856404';
+        } else if (score >= 7 && score <= 9) {
+            message = '¡Bastante bien! Tienes un buen dominio de los conceptos del regate de peones.';
+            resultDiv.style.backgroundColor = '#cce5ff';
+            resultDiv.style.color = '#004085';
+        } else if (score === 10) {
+            message = '¡Estupendo! Has estado pendiente del vídeo y has respondido todas las preguntas correctamente.';
+            resultDiv.style.backgroundColor = '#d4edda';
+            resultDiv.style.color = '#155724';
+        }
+
+        resultDiv.innerHTML = `<strong>Puntuación conseguida: ${score} de 10</strong><br><br>${message}`;
+        document.getElementById('submit-btn').style.display = 'none';
+    }
+
+    // Inicialización al cargar la página
+    buildQuiz();
+</script>
+</body>
+</html>
