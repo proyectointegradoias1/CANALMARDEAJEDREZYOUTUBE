@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuestionario: La Maniobra de Réti en Ajedrez</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        .quiz-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-style: italic;
+        }
+        .question {
+            margin-bottom: 25px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+        .question p {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .option {
+            padding: 12px 15px;
+            border: 2px solid #dcdde1;
+            border-radius: 6px;
+            cursor: pointer;
+            background-color: #ffffff;
+            transition: all 0.2s ease;
+            font-size: 1em;
+        }
+        .option:hover {
+            background-color: #f1f2f6;
+            border-color: #7f8fa6;
+        }
+        /* Corrección al pinchar */
+        .option.correct {
+            background-color: #4cd137 !important; /* Verde */
+            color: white;
+            border-color: #44bd32 !important;
+        }
+        .option.incorrect {
+            background-color: #ff9f43 !important; /* Naranja */
+            color: white;
+            border-color: #ee5253 !important;
+        }
+        /* Desactivar opciones contestadas */
+        .option.disabled {
+            pointer-events: none;
+        }
+        #submit-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1em;
+            font-weight: bold;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 30px;
+            transition: background-color 0.3s;
+        }
+        #submit-btn:hover {
+            background-color: #2980b9;
+        }
+        #result {
+            margin-top: 25px;
+            padding: 20px;
+            font-size: 1.2em;
+            text-align: center;
+            border-radius: 6px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <h1>Cuestionario: La Maniobra de Réti</h1>
+    <p class="subtitle">Lección de finales de ajedrez del canal MARdeAJEDREZ</p>
+
+    <div id="quiz"></div>
+
+    <button id="submit-btn" onclick="showResults()">Ver Puntuación Final</button>
+    <div id="result"></div>
+</div>
+
+<script>
+    // Base de datos de 12 preguntas con distribución exacta del 25% por opción (3 A, 3 B, 3 C, 3 D)
+    const quizData = [
+        {
+            question: "1. ¿En qué consiste fundamentalmente la famosa maniobra de Réti en un final de peones?",
+            options: [
+                { text: "En mover el rey en diagonal para amenazar simultáneamente dos objetivos: cazar el peón pasado enemigo y apoyar la coronación del peón propio.", isCorrect: true }, // Opción A
+                { text: "En sacrificar dos peones consecutivos para desviar al rey contrario hacia la banda.", isCorrect: false },
+                { text: "En bloquear el peón enemigo mediante la oposición frontal a larga distancia.", isCorrect: false },
+                { text: "En forzar las tablas ahogando al rey rival en la esquina opuesta.", isCorrect: false }
+            ]
+        },
+        {
+            question: "2. En el célebre estudio de Réti (1921), el rey blanco parece fuera del cuadrado del peón negro h5 y su peón c6 parece indefenso. ¿Por qué logra entablar?",
+            options: [
+                { text: "Porque el rey negro abandona por falta de tiempo en el reloj.", isCorrect: false },
+                { text: "Porque los movimientos diagonales del rey blanco le permiten ganar tiempos dobles aproximándose a ambos peones a la vez.", isCorrect: true }, // Opción B
+                { text: "Porque el peón de c6 avanza dos casillas en el primer movimiento saltándose al rey negro.", isCorrect: false },
+                { text: "Porque la regla de Studineski impide al rey negro capturar en c6.", isCorrect: false }
+            ]
+        },
+        {
+            question: "3. ¿Qué propiedad geométrica del tablero de ajedrez hace posible que la maniobra de Réti funcione?",
+            options: [
+                { text: "Que las casillas de las esquinas valen el doble de distancia en casillas impares.", isCorrect: false },
+                { text: "Que la distancia en línea recta horizontal siempre es menor que la distancia diagonal.", isCorrect: false },
+                { text: "Que en el tablero de ajedrez la distancia diagonal requiere el mismo número de jugadas de rey que el avance en línea recta.", isCorrect: true }, // Opción C
+                { text: "Que los peones mueven más rápido en las columnas de torre que en el centro.", isCorrect: false }
+            ]
+        },
+        {
+            question: "4. Si durante la maniobra de Réti el rey negro decide perseguir y capturar el peón blanco para evitar su coronación, ¿qué consiguen las blancas?",
+            options: [
+                { text: "Un jaque mate directo en la octava fila con la dama recién coronada.", isCorrect: false },
+                { text: "Cambiar todos los peones restantes y entablar por rey ahogado.", isCorrect: false },
+                { text: "Forzar la regla de los 50 movimientos mediante jaque continuo.", isCorrect: false },
+                { text: "El tiempo necesario para entrar en el cuadrado del peón pasado negro y capturarlo o detenerlo.", isCorrect: true } // Opción D
+            ]
+        },
+        {
+            question: "5. ¿Cuál es la ruta diagonal clásica del rey blanco en el estudio de Réti (Rey en h8, Peón en c6 vs Rey en a6, Peón en h5)?",
+            options: [
+                { text: "1.Rg7 h4 2.Rf6 h3 3.Re6 (o Re7) amenazando apoyar c7 y entrar al cuadrado del peón h.", isCorrect: true }, // Opción A
+                { text: "1.Rh7 h4 2.Rh6 h3 3.Rh5 h2 4.Rh4 h1=D+.", isCorrect: false },
+                { text: "1.Rf7 h4 2.Re8 h3 3.Rd7 Kb7 y las negras ganan fácilmente.", isCorrect: false },
+                { text: "1.Rg8 h4 2.Rf8 h3 3.Re8 h2 4.Rd8 h1=D.", isCorrect: false }
+            ]
+        },
+        {
+            question: "6. ¿Qué dos amenazas cruzadas se generan simultáneamente cuando el rey blanco alcanza la casilla f6 (o e6) durante la maniobra?",
+            options: [
+                { text: "Amenaza dar jaque mate en f8 y promocionar un caballo.", isCorrect: false },
+                { text: "Amenaza entrar al cuadrado del peón h (Re7/Re6) y apoyar la coronación de su peón c6 (Re7/Rd7).", isCorrect: true }, // Opción B
+                { text: "Amenaza capturar el peón de a6 y tomar la oposición lateral.", isCorrect: false },
+                { text: "Amenaza encerrar al rey negro en a6 y forzar tablas por ahogado.", isCorrect: false }
+            ]
+        },
+        {
+            question: "7. ¿Por qué se considera la maniobra de Réti una de las mayores obras de arte de la composición en finales?",
+            options: [
+                { text: "Porque demuestra que tres peones unidos siempre pierden contra un rey solo.", isCorrect: false },
+                { text: "Porque utiliza un sacrificio de dama en la primera jugada del final.", isCorrect: false },
+                { text: "Porque rompe la intuición aparente mostrando cómo un rey aparentemente 'perdido' salva la partida combinando dos intenciones.", isCorrect: true }, // Opción C
+                { text: "Porque obliga a jugar únicamente por casillas negras durante todo el final.", isCorrect: false }
+            ]
+        },
+        {
+            question: "8. En posiciones derivadas de la maniobra de Réti, si el rey negro intenta bloquear al peón blanco jugando Rb6, ¿qué responde el rey blanco?",
+            options: [
+                { text: "Retroceder a h8 para reiniciar la maniobra desde el origen.", isCorrect: false },
+                { text: "Entregar el peón c6 y correr a la esquina contraria.", isCorrect: false },
+                { text: "Abandonar la partida por falta de casillas conjugadas.", isCorrect: false },
+                { text: "Dirigirse directamente hacia el peón negro (Re5/Re4) al quedar dentro de su cuadrado.", isCorrect: true } // Opción D
+            ]
+        },
+        {
+            question: "9. ¿Qué principio general de los finales de peones ilustra magistralmente la maniobra de Réti?",
+            options: [
+                { text: "El principio de la 'doble amenaza' o 'doble objetivo' aplicado a la actividad del rey.", isCorrect: true }, // Opción A
+                { text: "La regla de la oposición distante en casillas pares.", isCorrect: false },
+                { text: "El regate táctico mediante cadenas de peones enfrentados.", isCorrect: false },
+                { text: "La regla de la coraza y la ruptura con peones de torre.", isCorrect: false }
+            ]
+        },
+        {
+            question: "10. ¿Qué ocurre si las negras, en lugar de avanzar su peón pasado, juegan su rey a b6 para eliminar primero el peón blanco de c6?",
+            options: [
+                { text: "Las blancas pierden inmediatamente por no tener jugadas de peón.", isCorrect: false },
+                { text: "El rey blanco aprovecha ese tiempo para aproximarse (Rf6-Re5) e ingresar al cuadrado del peón negro de h.", isCorrect: true }, // Opción B
+                { text: "Las negras coronan dama dos jugadas antes.", isCorrect: false },
+                { text: "Se declaran tablas automáticas por la regla del cuadrado errante.", isCorrect: false }
+            ]
+        },
+        {
+            question: "11. Cuando un final aplica la maniobra de Réti en un tablero con más peones, ¿cuál es la clave para identificar el éxito de la maniobra?",
+            options: [
+                { text: "Contar los peones de las columnas de torre exclusivamente.", isCorrect: false },
+                { text: "Que el rey siempre se mueva en línea recta por las columnas centrales.", isCorrect: false },
+                { text: "Que cada paso diagonal del rey mantenga abiertas de manera simultánea dos vías de acción eficaces.", isCorrect: true }, // Opción C
+                { text: "Que el rival no disponga de piezas menores en la primera fila.", isCorrect: false }
+            ]
+        },
+        {
+            question: "12. ¿Cuál es el resultado teórico exacto del estudio original de Réti de 1921 con juego correcto por ambos bandos?",
+            options: [
+                { text: "Victoria forzada de las negras en 15 jugadas.", isCorrect: false },
+                { text: "Victoria forzada de las blancas por coronación con jaque.", isCorrect: false },
+                { text: "Tablas por ahogado del peón de c.", isCorrect: false },
+                { text: "Tablas forzadas (empate) por la magistral maniobra defensiva del rey blanco.", isCorrect: true } // Opción D
+            ]
+        }
+    ];
+
+    let score = 0;
+    let answeredQuestions = 0;
+
+    // Función para construir el cuestionario
+    function buildQuiz() {
+        const quizContainer = document.getElementById('quiz');
+        quizData.forEach((q, qIndex) => {
+            const questionDiv = document.createElement('div');
+            questionDiv.classList.add('question');
+            questionDiv.innerHTML = `<p>${q.question}</p>`;
+            
+            const optionsDiv = document.createElement('div');
+            optionsDiv.classList.add('options');
+            
+            q.options.forEach((opt, oIndex) => {
+                const optionDiv = document.createElement('div');
+                optionDiv.classList.add('option');
+                optionDiv.innerText = opt.text;
+                optionDiv.onclick = () => selectOption(optionDiv, opt.isCorrect, qIndex);
+                optionsDiv.appendChild(optionDiv);
+            });
+            
+            questionDiv.appendChild(optionsDiv);
+            quizContainer.appendChild(questionDiv);
+        });
+    }
+
+    // Selección de opción y corrección
+    function selectOption(selectedDiv, isCorrect, qIndex) {
+        const optionsDiv = selectedDiv.parentElement;
+        const allOptions = optionsDiv.querySelectorAll('.option');
+        
+        if (optionsDiv.classList.contains('answered')) return;
+        
+        optionsDiv.classList.add('answered');
+        answeredQuestions++;
+
+        allOptions.forEach(opt => opt.classList.add('disabled'));
+
+        if (isCorrect) {
+            selectedDiv.classList.add('correct'); // Verde
+            score++;
+        } else {
+            selectedDiv.classList.add('incorrect'); // Naranja
+            // Mostrar la opción correcta en verde
+            quizData[qIndex].options.forEach((opt, idx) => {
+                if(opt.isCorrect) {
+                    allOptions[idx].classList.add('correct');
+                }
+            });
+        }
+    }
+
+    // Calcular y mostrar resultados con los mensajes por tramos
+    function showResults() {
+        if (answeredQuestions < quizData.length) {
+            alert('Por favor, responde todas las preguntas pinchando en una opción antes de ver la puntuación final.');
+            return;
+        }
+
+        const resultDiv = document.getElementById('result');
+        resultDiv.style.display = 'block';
+        
+        let message = '';
+        
+        if (score < 6) {
+            message = 'Necesitas mejorar. Lo ideal sería volver a ver el vídeo con tranquilidad e intentarlo de nuevo.';
+            resultDiv.style.backgroundColor = '#f8d7da';
+            resultDiv.style.color = '#721c24';
+        } else if (score >= 6 && score <= 7) {
+            message = '¡Bien! Has captado las ideas básicas, aunque te convendría repasar para afianzar conceptos.';
+            resultDiv.style.backgroundColor = '#fff3cd';
+            resultDiv.style.color = '#856404';
+        } else if (score >= 8 && score <= 11) {
+            message = '¡Bastante bien! Tienes un buen dominio de la maniobra de Réti.';
+            resultDiv.style.backgroundColor = '#cce5ff';
+            resultDiv.style.color = '#004085';
+        } else if (score === 12) {
+            message = '¡Estupendo! Has estado pendiente del vídeo y has respondido todas las preguntas correctamente.';
+            resultDiv.style.backgroundColor = '#d4edda';
+            resultDiv.style.color = '#155724';
+        }
+
+        resultDiv.innerHTML = `<strong>Puntuación conseguida: ${score} de 12</strong><br><br>${message}`;
+        document.getElementById('submit-btn').style.display = 'none';
+    }
+
+    // Inicialización al cargar la página
+    buildQuiz();
+</script>
+</body>
+</html>
