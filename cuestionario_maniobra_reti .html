@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cuestionario: La maniobra de Réti 1</title>
+<style>
+  :root{
+    --bg:#f3efe6; --card:#fffdf8; --ink:#1f1d1a; --muted:#6b665d; --line:#d9d2c3;
+    --board-dark:#7a5c3e; --ok:#4caf50; --ok-ink:#0f3d12; --bad:#ff9800; --bad-ink:#4a2a00;
+    --accent:#7a5c3e;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#1b1916; --card:#25221e; --ink:#f1ece2; --muted:#a39c8e; --line:#3a352e; --accent:#c9a374; --ok-ink:#06210a; --bad-ink:#2a1700; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:Georgia,"Times New Roman",serif;line-height:1.5;padding:24px 16px}
+  .wrap{max-width:720px;margin:0 auto}
+  header{margin-bottom:20px}
+  h1{font-size:1.7rem;margin:0 0 4px}
+  .sub{color:var(--muted);font-size:.95rem;margin:0}
+  .bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden;margin:16px 0 6px}
+  .bar>div{height:100%;width:0;background:var(--accent);transition:width .3s}
+  .prog{font-size:.9rem;color:var(--muted);margin-bottom:14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:22px}
+  .q{font-size:1.2rem;margin:0 0 16px;font-weight:bold}
+  .opt{display:block;width:100%;text-align:left;font:inherit;color:inherit;background:var(--bg);border:2px solid var(--line);border-radius:8px;padding:12px 14px;margin-bottom:10px;cursor:pointer}
+  .opt:hover:not(:disabled){border-color:var(--accent)}
+  .opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+  .opt:disabled{cursor:default}
+  .opt .l{font-weight:bold;margin-right:8px}
+  .opt.ok{background:var(--ok);border-color:var(--ok);color:var(--ok-ink)}
+  .opt.bad{background:var(--bad);border-color:var(--bad);color:var(--bad-ink)}
+  .next{display:none;margin-top:8px;font:inherit;background:var(--accent);color:#fff;border:0;border-radius:8px;padding:11px 22px;cursor:pointer}
+  .next:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+  .result{text-align:center}
+  .nota{font-size:3.4rem;font-weight:bold;margin:6px 0}
+  .msg{font-size:1.1rem;margin:10px 0 18px}
+  .aciertos{color:var(--muted)}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>La maniobra de Réti 1</h1>
+    <p class="sub">Cuestionario de opción múltiple · 10 preguntas</p>
+  </header>
+
+  <div id="quiz">
+    <div class="bar"><div id="fill"></div></div>
+    <div class="prog" id="prog"></div>
+    <div class="card">
+      <p class="q" id="pregunta"></p>
+      <div id="opciones"></div>
+      <button class="next" id="next"></button>
+    </div>
+  </div>
+
+  <div id="final" class="card result hidden">
+    <div class="aciertos" id="aciertos"></div>
+    <div class="nota" id="nota"></div>
+    <p class="msg" id="msg"></p>
+    <button class="next" style="display:inline-block" id="repetir">Repetir cuestionario</button>
+  </div>
+</div>
+
+<script>
+const PREGUNTAS = [
+  { q:"¿Quién da nombre a la maniobra de Réti?",
+    o:["Emanuel Lasker","Richard Réti","Frederick Yates","José Raúl Capablanca"], c:1 },
+  { q:"¿En qué año publicó Richard Réti el famoso estudio que ilustra esta idea?",
+    o:["1901","1911","1921","1931"], c:2 },
+  { q:"En la posición clásica, ¿por qué parece que las blancas están completamente perdidas?",
+    o:["Tienen una pieza menos y el rey negro está activo en el centro",
+       "Su rey está muy lejos del peón pasado negro de la columna h y su peón de la columna c está a punto de ser capturado por el rey rival",
+       "Su peón de la columna c ya ha sido capturado y el peón negro corona en la siguiente jugada sin que nada pueda evitarlo",
+       "Su rey está en jaque y no tiene casillas libres para moverse"], c:1 },
+  { q:"¿Qué jugada, aparentemente «hacia atrás» o en diagonal, se cita como ejemplo de la maniobra?",
+    o:["1.Rg7","1.Rf6","1.c5","1.Rh7"], c:0 },
+  { q:"¿Cuál es la clave geométrica de la maniobra?",
+    o:["El rey se mueve más rápido por las columnas que por las filas",
+       "El peón blanco puede avanzar dos casillas en su primer movimiento",
+       "Moverse en diagonal permite al rey acercarse a dos puntos distintos con el mismo número de movimientos que si fuera en línea recta hacia uno solo",
+       "El rey negro no puede moverse en diagonal cuando defiende un peón"], c:2 },
+  { q:"Según cómo responda el adversario, ¿qué ocurre si este detiene al peón blanco?",
+    o:["Las blancas pierden inmediatamente la partida",
+       "El rey blanco gana los tiempos necesarios para interceptar el peón negro",
+       "El rey blanco abandona el peón negro y se dedica solo a defender el suyo",
+       "El peón negro de la columna h queda bloqueado definitivamente"], c:1 },
+  { q:"¿Cuál es el resultado final que se obtiene con la maniobra de Réti?",
+    o:["Victoria de las blancas","Victoria de las negras","Zugzwang mutuo","Tablas"], c:3 },
+  { q:"¿Con qué expresión se conoce también esta idea?",
+    o:["«Cazar dos liebres a la vez»","«Más vale pájaro en mano que ciento volando»","«Perseguir un solo objetivo hasta el final»","«A rey muerto, rey puesto»"], c:0 },
+  { q:"¿En qué partida jugada en 1914 en San Petersburgo aparece la maniobra de Réti?",
+    o:["Fischer y Kasparov","Lasker-Tarrasch","Capablanca y Alekhine","Botvinnik y Tal"], c:1 },
+  { q:"¿Qué enseña la maniobra de Réti como recurso práctico en los finales de peones?",
+    o:["A no pensar solo en líneas rectas, a valorar las amenazas dobles del rey y a aprovechar cada tiempo con precisión",
+       "A sacrificar siempre el peón propio para detener el peón rival",
+       "A mantener el rey lo más lejos posible de los peones",
+       "A elegir de antemano un único destino para el rey y no cambiar de plan"], c:0 }
+];
+
+const LETRAS = ["A","B","C","D"];
+let actual = 0, aciertos = 0;
+const $ = id => document.getElementById(id);
+
+function mostrar(){
+  const p = PREGUNTAS[actual], total = PREGUNTAS.length;
+  $("prog").textContent = "Pregunta " + (actual+1) + " de " + total;
+  $("fill").style.width = (actual/total*100) + "%";
+  $("pregunta").textContent = p.q;
+  $("next").style.display = "none";
+  const cont = $("opciones"); cont.innerHTML = "";
+  p.o.forEach((texto,i)=>{
+    const b = document.createElement("button");
+    b.className = "opt";
+    b.innerHTML = '<span class="l">'+LETRAS[i]+')</span>';
+    b.appendChild(document.createTextNode(texto));
+    b.addEventListener("click", ()=>responder(i));
+    cont.appendChild(b);
+  });
+}
+
+function responder(i){
+  const p = PREGUNTAS[actual];
+  const botones = document.querySelectorAll(".opt");
+  botones.forEach(b => b.disabled = true);
+  if(i === p.c){ botones[i].classList.add("ok"); aciertos++; }
+  else { botones[i].classList.add("bad"); botones[p.c].classList.add("ok"); }
+  const ultima = actual === PREGUNTAS.length-1;
+  const n = $("next");
+  n.textContent = ultima ? "Ver resultado" : "Siguiente pregunta";
+  n.style.display = "inline-block";
+  n.focus();
+}
+
+function resultado(){
+  const total = PREGUNTAS.length;
+  const nota = Math.round(aciertos/total*10);
+  let msg;
+  if(nota < 5) msg = "Suspenso. Tu calificación es un suspenso: debes repasar el vídeo o documento.";
+  else if(nota === 5) msg = "Aprobado. Has respondido correctamente al 50% de las preguntas, conviene repasar un poco.";
+  else if(nota <= 7) msg = "Bien. Demuestras un buen conocimiento del tema.";
+  else if(nota <= 9) msg = "Notable. Dominas los conceptos casi a la perfección.";
+  else msg = "¡Sobresaliente! Has comprendido el contenido de manera impecable.";
+  $("quiz").classList.add("hidden");
+  $("final").classList.remove("hidden");
+  $("aciertos").textContent = "Aciertos: " + aciertos + " de " + total;
+  $("nota").textContent = "Nota: " + nota + " / 10";
+  $("msg").textContent = msg;
+}
+
+$("next").addEventListener("click", ()=>{
+  if(actual === PREGUNTAS.length-1){ resultado(); }
+  else { actual++; mostrar(); }
+});
+$("repetir").addEventListener("click", ()=>{
+  actual = 0; aciertos = 0;
+  $("final").classList.add("hidden");
+  $("quiz").classList.remove("hidden");
+  mostrar();
+});
+mostrar();
+</script>
+</body>
+</html>
