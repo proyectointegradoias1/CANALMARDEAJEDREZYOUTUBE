@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuestionario: La Maniobra de Réti (Parte 3)</title>
+    <style>
+        :root {
+            --primary: #1b365d;
+            --primary-light: #2b4c7e;
+            --accent: #d4af37;
+            --bg: #f4f6f9;
+            --card-bg: #ffffff;
+            --text: #2c3e50;
+            --correct: #2e7d32;
+            --correct-bg: #e8f5e9;
+            --incorrect: #e65100;
+            --incorrect-bg: #fff3e0;
+            --border: #e0e0e0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 20px 10px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            padding: 30px 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+            color: #ffffff;
+        }
+
+        header p {
+            font-size: 1rem;
+            opacity: 0.9;
+            color: #e0e6ed;
+        }
+
+        .quiz-tracker {
+            background: var(--card-bg);
+            padding: 15px 20px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            font-weight: 600;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 8px;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background-color: var(--accent);
+            transition: width 0.3s ease;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-left: 5px solid var(--primary);
+        }
+
+        .question-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--primary);
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        .option-btn {
+            background: #f8f9fa;
+            border: 1.5px solid var(--border);
+            border-radius: 6px;
+            padding: 12px 15px;
+            text-align: left;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .option-btn:hover:not([disabled]) {
+            background: #eef2f7;
+            border-color: var(--primary-light);
+        }
+
+        .option-btn[disabled] {
+            cursor: default;
+        }
+
+        .option-btn .prefix {
+            font-weight: bold;
+            margin-right: 10px;
+            min-width: 25px;
+        }
+
+        .option-btn.btn-correct {
+            background-color: var(--correct) !important;
+            color: white !important;
+            border-color: var(--correct) !important;
+        }
+
+        .option-btn.btn-incorrect {
+            background-color: var(--incorrect) !important;
+            color: white !important;
+            border-color: var(--incorrect) !important;
+        }
+
+        .feedback-box {
+            margin-top: 15px;
+            padding: 12px 15px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .feedback-box.show {
+            display: block;
+        }
+
+        .feedback-box.correct {
+            background-color: var(--correct-bg);
+            border: 1px solid var(--correct);
+            color: #1b5e20;
+        }
+
+        .feedback-box.incorrect {
+            background-color: var(--incorrect-bg);
+            border: 1px solid var(--incorrect);
+            color: #e65100;
+        }
+
+        #results-card {
+            display: none;
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-top: 25px;
+        }
+
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin: 20px auto;
+            font-size: 2rem;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+
+        .score-circle span {
+            font-size: 0.8rem;
+            font-weight: normal;
+            opacity: 0.8;
+        }
+
+        .restart-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 25px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background 0.2s ease;
+        }
+
+        .restart-btn:hover {
+            background: var(--primary-light);
+        }
+
+        @media (max-width: 600px) {
+            header h1 { font-size: 1.4rem; }
+            .question-card { padding: 18px; }
+            .option-btn { padding: 10px 12px; font-size: 0.9rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Cuestionario: La Maniobra de Réti (Parte 3)</h1>
+        <p>Mar de Ajedrez &bull; Finales de Peones y Trayectorias Geométricas</p>
+    </header>
+
+    <div class="quiz-tracker">
+        <div>Preguntas respondidas: <span id="answered-count">0</span> / 12</div>
+        <div>Puntuación: <span id="current-score">0</span></div>
+    </div>
+    <div class="progress-bar-container" style="margin-top: -10px; margin-bottom: 20px;">
+        <div class="progress-bar" id="progress-bar"></div>
+    </div>
+
+    <div id="quiz-container">
+        <!-- Las preguntas se cargarán dinámicamente mediante JS -->
+    </div>
+
+    <div id="results-card">
+        <h2>¡Cuestionario Completado!</h2>
+        <div class="score-circle">
+            <div id="final-score">0/12</div>
+            <span id="final-percentage">0%</span>
+        </div>
+        <p id="feedback-message" style="font-size: 1.1rem; margin-top: 15px; font-weight: 500;"></p>
+        <button class="restart-btn" onclick="restartQuiz()">Reiniciar Cuestionario</button>
+    </div>
+</div>
+
+<script>
+    const questions = [
+        {
+            question: "1. ¿En qué consiste el principio fundamental de la \"Maniobra de Réti\" demostrado a lo largo del vídeo?",
+            options: [
+                "Un sacrificio de piezas en el medio juego para abrir líneas contra el rey enemigo.",
+                "Un itinerario de rey con doble amenaza simultánea: apoyar el propio peón pasado o entrar en el cuadrado del peón rival.",
+                "Una maniobra exclusiva de torres para cortar el paso al rey contrario en la sexta fila.",
+                "La búsqueda deliberada del ahogado inmediato en las primeras tres jugadas del final."
+            ],
+            correct: 1, // B
+            explanation: "La maniobra de Réti aprovecha la geometría del tablero para amenazar simultáneamente dos objetivos distantes (apoyar al propio peón o perseguir al peón rival), forzando al adversario a ceder en uno de ellos."
+        },
+        {
+            question: "2. En el célebre estudio inicial de Réti presentado en el vídeo (Rey en a4, peón en c5 vs Rey en a6, peón en h5), ¿cuántas soluciones teóricas se analizan?",
+            options: [
+                "Solo una única jugada ganadora posible.",
+                "Tres variantes idénticas que llevan al mate en 5 jugadas.",
+                "Dos soluciones teóricas distintas (1.c6 y 1.Rb4).",
+                "Ninguna, la posición está irremediablemente perdida para las blancas."
+            ],
+            correct: 2, // C
+            explanation: "Réti demostró que en esta posición el blanco dispone de dos caminos independientes para entablar: 1.c6 forzando la carrera de peones o 1.Rb4 amenazando un rodeo diagonal."
+        },
+        {
+            question: "3. En el análisis del primer estudio de Réti, ¿por qué la jugada precipitarse con 1.Rc4? resultaría errónea en ciertas variantes?",
+            options: [
+                "Porque las negras coronan su peón en h1 con jaque, ganando la partida de inmediato.",
+                "Porque el peón de c5 cae capturado por el rey negro sin compensación.",
+                "Porque el rey blanco queda ahogado tras el avance h4.",
+                "Porque permite al rey negro alcanzar la casilla c8 antes de tiempo."
+            ],
+            correct: 0, // A
+            explanation: "Si el blanco juega de forma imprecisa con 1.Rc4?, el peón de h5 avanza velozmente y corona en h1 dando jaque, lo que impide al blanco promocionar a tiempo su peón de c."
+        },
+        {
+            question: "4. En el estudio del compositor austriaco Hans Moravec (Rey blanco en f3, peón en e4), ¿cuál es la primera jugada correcta del blanco para aplicar la maniobra?",
+            options: [
+                "1.e5 lanzando el peón de forma directa sin apoyo del rey.",
+                "1.Kf2 retirándose a la primera fila para defender la esquina.",
+                "1.Ke2 cruzando la columna d para bloquear al rey negro.",
+                "1.Kg6 (o 1.Kf4), buscando la doble ruta estratégica hacia e5/e6 o el peón a7."
+            ],
+            correct: 3, // D
+            explanation: "Tras 1.Kg6 (o 1.Kf4), el rey blanco mantiene vivas las dos opciones estratégicas: apoyar la coronación del e-peón o aproximarse en diagonal al peón pasado de a7."
+        },
+        {
+            question: "5. ¿Qué recurso táctico decisivo permite a las blancas salvar las tablas en el estudio de Moravec tras el avance mutuo de peones?",
+            options: [
+                "Encerrar la dama negra en la casilla a1 nada más coronar.",
+                "Coronar su propio peón con jaque justo al mismo tiempo o un tiempo antes de que las negras amenacen ganar.",
+                "Interponer el rey blanco en la casilla a1 sacrificándolo.",
+                "Promover una torre en lugar de una dama para evitar el ahogado."
+            ],
+            correct: 1, // B
+            explanation: "El cálculo preciso permite a las blancas promover su peón dando jaque (por ejemplo, e8=D+), ganando un tiempo clave que desarticula el ataque negro."
+        },
+        {
+            question: "6. En el otro estudio de Moravec presentado (Rey en a4, peón en c4 vs Rey en c8, peón en h7), ¿qué jugada del rey blanco parece antiintuitiva pero es clave?",
+            options: [
+                "2.c5 acelerando el avance sin mirar la posición del rey rival.",
+                "2.Rb3 retirando el rey hacia el borde del tablero.",
+                "2.Rc6!, bloqueando momentáneamente su propio peón para ganar un tiempo vital.",
+                "2.Ka5 abandonando el control del centro del tablero."
+            ],
+            correct: 2, // C
+            explanation: "2.Rc6! parece bloquear al peón blanco de c5, pero obliga al rey negro a desplazarse (2...Rc8), ganando un tiempo esencial para adaptar la ruta del rey blanco."
+        },
+        {
+            question: "7. En el estudio de Ladislav Prokeš (Rey en c8, peón en f3 vs Rey en g4, peón en a6), ¿cuál es la única jugada blanca que logra las tablas?",
+            options: [
+                "1.Rf7!, trazando una trayectoria oblicua eficiente.",
+                "1.f4? avanzando el peón directamente.",
+                "1.Rg7? alejándose del peón de a6.",
+                "1.Re7? permitiendo al rey negro capturar en f3 con oposición."
+            ],
+            correct: 0, // A
+            explanation: "La jugada 1.Rf7! es la única que permite al rey blanco trazar una diagonal oblicua eficiente, manteniendo la opción de apoyar su peón de f o cortar al peón negro de a6."
+        },
+        {
+            question: "8. ¿Por qué la jugada 1.f4? falla en el estudio de Prokeš?",
+            options: [
+                "Porque el peón blanco es capturado al paso en la siguiente jugada.",
+                "Porque el rey blanco queda bloqueado en la octava fila sin movilidad.",
+                "Porque las negras ganan inmediatamente promocionando un caballo.",
+                "Porque las negras responden 1...Rg5! amenazando capturar el peón y ganando la posición."
+            ],
+            correct: 3, // D
+            explanation: "La precipitación con 1.f4? permite a las negras activar su rey con 1...Rg5!, atacando el peón de f4 y ganando el control posicional definitivo."
+        },
+        {
+            question: "9. ¿Por qué la jugada 1.Rg7? resulta perdedora para el blanco en la posición de Prokeš?",
+            options: [
+                "Porque el rey blanco queda ahogado en la casilla g8.",
+                "Porque tras la coronación negra en a1, la dama negra clava al peón de f7 en la columna a (o da jaque mortal).",
+                "Porque el peón de a6 se convierte en tres peones pasados.",
+                "Porque el blanco pierde el derecho a coronar por falta de tiempos."
+            ],
+            correct: 1, // B
+            explanation: "Tras 1.Rg7? a5 2.f4 a4..., las negras coronan en a1 y su Dama clava inmediatamente al peón blanco de f7, impidiendo la coronación blanca y ganando la partida."
+        },
+        {
+            question: "10. ¿Qué regla general se explica en el vídeo sobre el enfrentamiento entre Dama y Peón en 6ª fila?",
+            options: [
+                "El peón en 6ª fila siempre hace tablas contra la Dama si es de torre.",
+                "La Dama siempre pierde si no está acompañada por su propio rey.",
+                "Salvo excepciones muy raras, la Dama siempre gana contra un peón situado en 6ª fila.",
+                "Es una posición de tablas teóricas automáticas sin importar la columna."
+            ],
+            correct: 2, // C
+            explanation: "Salvo contadas excepciones posicionales, una Dama se impone con facilidad a un peón rival situado en la sexta fila, ya que este no dispone aún de amenazas de ahogado."
+        },
+        {
+            question: "11. En los finales de Dama contra Peón en 7ª fila, ¿qué peones permiten al bando débil salvar las tablas gracias al recurso del ahogado?",
+            options: [
+                "Los peones de torre (a, h) y los peones de alfil (c, f).",
+                "Únicamente los peones centrales (d, e).",
+                "Todos los peones por igual, independientemente de la columna.",
+                "Ningún peón puede salvar las tablas contra una Dama en 7ª fila."
+            ],
+            correct: 0, // A
+            explanation: "En séptima fila, los peones de torre (a, h) y de alfil (c, f) permiten al bando débil refugiarse en la esquina o forzar el ahogado si la Dama intenta acorralar al rey sin apoyo del propio rey."
+        },
+        {
+            question: "12. ¿Qué término coloquial y didáctico utiliza frecuentemente el profesor en el vídeo para describir el apoyo diagonal del rey a su peón pasado?",
+            options: [
+                "Hacer \"el trampolín táctico\".",
+                "Ejecutar \"el ascensor de torre\".",
+                "Aplicar \"la tijera de peones\".",
+                "Hacer \"el tobogán\" (o maniobra de rodeo)."
+            ],
+            correct: 3, // D
+            explanation: "El profesor utiliza la expresión gráfica \"el tobogán\" para ilustrar cómo el rey blanco acompaña en diagonal el avance de su propio peón para facilitarle el paso libre a la coronación."
+        }
+    ];
+
+    let score = 0;
+    let answeredCount = 0;
+
+    function renderQuiz() {
+        const container = document.getElementById('quiz-container');
+        container.innerHTML = '';
+
+        questions.forEach((q, qIndex) => {
+            const card = document.createElement('div');
+            card.className = 'question-card';
+            card.id = `q-card-${qIndex}`;
+
+            const title = document.createElement('div');
+            title.className = 'question-title';
+            title.innerText = q.question;
+            card.appendChild(title);
+
+            const optionsGrid = document.createElement('div');
+            optionsGrid.className = 'options-grid';
+
+            const prefixes = ['A', 'B', 'C', 'D'];
+
+            q.options.forEach((optText, oIndex) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.id = `btn-${qIndex}-${oIndex}`;
+                btn.onclick = () => handleAnswer(qIndex, oIndex);
+
+                btn.innerHTML = `<span class="prefix">${prefixes[oIndex]})</span> <span>${optText}</span>`;
+                optionsGrid.appendChild(btn);
+            });
+
+            card.appendChild(optionsGrid);
+
+            const feedback = document.createElement('div');
+            feedback.className = 'feedback-box';
+            feedback.id = `feedback-${qIndex}`;
+            card.appendChild(feedback);
+
+            container.appendChild(card);
+        });
+    }
+
+    function handleAnswer(qIndex, selectedIndex) {
+        const q = questions[qIndex];
+        const card = document.getElementById(`q-card-${qIndex}`);
+        const feedback = document.getElementById(`feedback-${qIndex}`);
+
+        // Disable all buttons in this question
+        const buttons = card.querySelectorAll('.option-btn');
+        buttons.forEach(btn => btn.disabled = true);
+
+        const isCorrect = (selectedIndex === q.correct);
+
+        if (isCorrect) {
+            score++;
+            document.getElementById(`btn-${qIndex}-${selectedIndex}`).classList.add('btn-correct');
+            feedback.className = 'feedback-box show correct';
+            feedback.innerHTML = `<strong>¡Correcto!</strong> ${q.explanation}`;
+        } else {
+            document.getElementById(`btn-${qIndex}-${selectedIndex}`).classList.add('btn-incorrect');
+            document.getElementById(`btn-${qIndex}-${q.correct}`).classList.add('btn-correct');
+            feedback.className = 'feedback-box show incorrect';
+            feedback.innerHTML = `<strong>Incorrecto.</strong> La respuesta correcta era la <strong>${String.fromCharCode(65 + q.correct)}</strong>.<br>${q.explanation}`;
+        }
+
+        answeredCount++;
+        updateTracker();
+
+        if (answeredCount === questions.length) {
+            setTimeout(showResults, 600);
+        }
+    }
+
+    function updateTracker() {
+        document.getElementById('answered-count').innerText = answeredCount;
+        document.getElementById('current-score').innerText = score;
+        const progressPct = (answeredCount / questions.length) * 100;
+        document.getElementById('progress-bar').style.width = `${progressPct}%`;
+    }
+
+    function showResults() {
+        document.getElementById('quiz-container').style.display = 'none';
+        const resultsCard = document.getElementById('results-card');
+        resultsCard.style.display = 'block';
+
+        const percentage = Math.round((score / questions.length) * 100);
+        document.getElementById('final-score').innerText = `${score}/${questions.length}`;
+        document.getElementById('final-percentage').innerText = `${percentage}%`;
+
+        const msgBox = document.getElementById('feedback-message');
+        if (score === 12) {
+            msgBox.innerHTML = '&#127942; <strong>¡Excelente!</strong> Has demostrado un dominio absoluto de la Maniobra de Réti y de las sutilezas de los finales de peones.';
+            msgBox.style.color = '#2e7d32';
+        } else if (score >= 9) {
+            msgBox.innerHTML = '&#128079; <strong>¡Muy bien!</strong> Tienes una comprensión muy sólida de las trayectorias geométricas del rey y la doble amenaza.';
+            msgBox.style.color = '#1565c0';
+        } else if (score >= 6) {
+            msgBox.innerHTML = '&#12470; <strong>¡Buen intento!</strong> Repasar los momentos clave del vídeo te ayudará a afinar el cálculo en estos finales tan precisos.';
+            msgBox.style.color = '#ef6c00';
+        } else {
+            msgBox.innerHTML = '&#128216; <strong>¡Ánimo!</strong> Te recomendamos volver a ver la lección en el canal <em>Mar de Ajedrez</em> para consolidar estos conceptos fundamentales.';
+            msgBox.style.color = '#c62828';
+        }
+
+        resultsCard.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function restartQuiz() {
+        score = 0;
+        answeredCount = 0;
+        updateTracker();
+        document.getElementById('results-card').style.display = 'none';
+        document.getElementById('quiz-container').style.display = 'block';
+        renderQuiz();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Inicializar el cuestionario al cargar
+    window.onload = renderQuiz;
+</script>
+
+</body>
+</html>
